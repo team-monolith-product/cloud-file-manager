@@ -21,7 +21,8 @@ export async function getCodapActivity<T extends "" | "activity" = "">(args: {
 }
 
 export async function updateCodapActivity(
-  codapActivity: Pick<CodapActivity, "id" | "projectData">
+  codapActivity: Pick<CodapActivity, "id">,
+  blobId?: string
 ): Promise<CodapActivity> {
   const response = await fetchClassRails(
     `/api/v1/codap_activities/${codapActivity.id}`,
@@ -34,7 +35,7 @@ export async function updateCodapActivity(
         data: {
           type: "codap_activity",
           attributes: {
-            project_data: codapActivity.projectData,
+            blob_id: blobId,
           },
         },
       }),

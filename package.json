@@ -22,7 +22,9 @@
   "dependencies": {
     "@concord-consortium/lara-interactive-api": "^1.9.4",
     "@concord-consortium/token-service": "^2.1.0",
+    "@rails/activestorage": "^8.0.100",
     "@team-monolith/post-message-manager": "^1.0.3",
+    "@types/rails__activestorage": "^7.1.1",
     "aws-sdk": "^2.1526.0",
     "base64-js": "^1.5.1",
     "camelcase-keys": "^9.1.3",
