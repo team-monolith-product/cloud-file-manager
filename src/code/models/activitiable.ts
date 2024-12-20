@@ -4,7 +4,7 @@ import { Activity } from "./activity"
 type Attributes = {
   id: string
   type: "codap_activity"
-  projectData: unknown
+  url: string | null
 }
 
 type Relationships = {

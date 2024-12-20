@@ -26,7 +26,8 @@ export async function getProfilesCodapActivity<
 }
 
 export async function updateProfilesCodapActivity(
-  profilesCodapActivity: Pick<ProfilesCodapActivity, "id" | "projectData">
+  profilesCodapActivity: Pick<ProfilesCodapActivity, "id">,
+  blobId?: string
 ): Promise<ProfilesCodapActivity> {
   const response = await fetchClassRails(
     `/api/v1/profiles_codap_activities/${profilesCodapActivity.id}`,
@@ -39,7 +40,7 @@ export async function updateProfilesCodapActivity(
         data: {
           type: "profiles_codap_activity",
           attributes: {
-            project_data: profilesCodapActivity.projectData,
+            blob_id: blobId,
           },
         },
       }),

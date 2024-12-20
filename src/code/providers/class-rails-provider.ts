@@ -1,4 +1,5 @@
 import { getCodapActivity, updateCodapActivity } from "../api/codapActivities"
+import { createBlobAndUrlFromFile } from "../api/directUploads"
 import {
   getProfilesCodapActivity,
   updateProfilesCodapActivity,
@@ -71,38 +72,52 @@ class ClassRailsProvider extends ProviderInterface {
     const isEditMode = urlParams.get("mode") === "edit"
     if (isEditMode) {
       const codapActivity = await getCodapActivity({ id: projectId })
-      return {
-        data: codapActivity.projectData,
-        updatedAt: null,
+      if (!codapActivity.url) {
+        return { data: null, updatedAt: null }
       }
+
+      const response = await fetch(codapActivity.url)
+      const projectData = await response.json()
+      return { data: projectData, updatedAt: null }
     } else {
       const profilesCodapActivity = await getProfilesCodapActivity({
         id: projectId,
         includeProfilesActivity:
           "profilesActivity.classroomsActivity.activity.activitiable",
       })
-      // profilesCodapActivity.projectData가 없다면 원본 activity의 projectData를 반환합니다.
+
+      // profilesCodapActivity.url이 없다면 원본 activity의 url에서 데이터를 가져옵니다.
+      const projectUrl =
+        profilesCodapActivity.url ??
+        profilesCodapActivity.profilesActivity.classroomsActivity.activity
+          .activitiable.url
+      if (!projectUrl) {
+        return {
+          data: null,
+          updatedAt: profilesCodapActivity.projectDataUpdatedAt,
+        }
+      }
+
+      const response = await fetch(projectUrl)
+      const projectData = await response.json()
       return {
-        data:
-          profilesCodapActivity.projectData ??
-          profilesCodapActivity.profilesActivity.classroomsActivity.activity
-            .activitiable.projectData,
+        data: projectData,
         updatedAt: profilesCodapActivity.projectDataUpdatedAt,
       }
     }
   }
 
   /**
-   * 프로젝트 데이터를 서버에 업데이트합니다.
+   * 프로젝트를 업데이트합니다.
    * 이때, mode URL 파라미터에 따라 다른 API 엔드포인트를 사용합니다.
    */
-  private async _updateProjectData(projectData: unknown, projectId: string) {
+  private async _updateProject(projectId: string, blobId: string) {
     const urlParams = new URLSearchParams(window.location.search)
     const isEditMode = urlParams.get("mode") === "edit"
     if (isEditMode) {
-      return await updateCodapActivity({ id: projectId, projectData })
+      return await updateCodapActivity({ id: projectId }, blobId)
     } else {
-      return await updateProfilesCodapActivity({ id: projectId, projectData })
+      return await updateProfilesCodapActivity({ id: projectId }, blobId)
     }
   }
 
@@ -111,7 +126,7 @@ class ClassRailsProvider extends ProviderInterface {
    */
   private async _getActivityName(projectId: string) {
     const urlParams = new URLSearchParams(window.location.search)
-    const isEditMode = urlParams.has("is_edit_mode")
+    const isEditMode = urlParams.get("mode") === "edit"
     if (isEditMode) {
       const codapActivity = await getCodapActivity({
         id: projectId,
@@ -131,15 +146,22 @@ class ClassRailsProvider extends ProviderInterface {
   /**
    * content 값을 저장할 때 호출되는 함수입니다.
    */
-  async save(content: any, _: CloudMetadata, callback?: ProviderSaveCallback) {
+  async save(
+    content: any,
+    metadata: CloudMetadata,
+    callback?: ProviderSaveCallback
+  ) {
     if (!this._projectId) {
       return callback?.("잘못된 접근입니다.")
     }
     try {
-      await this._updateProjectData(
-        content.getContentAsJSON?.() || content,
-        this._projectId
-      )
+      const fileContent = content.getContentAsJSON?.() || content
+      const fileBlob = new Blob([fileContent], { type: "application/json" })
+      const file = new File([fileBlob], `${metadata.name}.codap`, {
+        type: "application/json",
+      })
+      const { blob } = await createBlobAndUrlFromFile(file)
+      await this._updateProject(this._projectId, blob.signed_id)
       return callback?.(null)
     } catch (e) {
       return callback?.(`파일을 저장 할 수 없습니다. ${e.message}`)
