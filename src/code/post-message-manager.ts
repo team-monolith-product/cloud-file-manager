@@ -44,14 +44,10 @@ export function postiframeLoadedMessageToParent() {
     "iframe_key"
   )
   if (!iframeKey) return
-  try {
-    postMessageManager.send({
-      messageType: `iframeLoaded-${iframeKey}`,
-      payload: null,
-      target: window.parent,
-      targetOrigin: "*",
-    })
-  } catch {
-    /* ignore */
-  }
+  postMessageManager.notify({
+    messageType: `iframeLoaded-${iframeKey}`,
+    payload: null,
+    target: window.parent,
+    targetOrigin: "*",
+  })
 }

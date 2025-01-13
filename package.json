@@ -23,7 +23,7 @@
     "@concord-consortium/lara-interactive-api": "^1.9.4",
     "@concord-consortium/token-service": "^2.1.0",
     "@rails/activestorage": "^7.2.201",
-    "@team-monolith/post-message-manager": "^1.0.3",
+    "@team-monolith/post-message-manager": "^1.1.0",
     "@types/rails__activestorage": "^7.1.1",
     "aws-sdk": "^2.1526.0",
     "base64-js": "^1.5.1",
