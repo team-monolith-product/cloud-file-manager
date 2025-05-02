@@ -3,27 +3,31 @@
  *
  * entry-ts 레포지토리의 코드를 참조하여 작성하였으나, env 환경변수 객체를 사용할 수 없는 환경이므로,
  * 환경 구분을 window.location.hostname을 통해 직접 구분하도록 작성하였습니다.
- * 
- * v3 정식 출시 이후 runtime env를 주입 가능하게 된다면 
+ *
+ * v3 정식 출시 이후 runtime env를 주입 가능하게 된다면
  * COOKIE_ENV를 env.REACT_APP_ENVIRONMENT로 대체할 수 있습니다.
  */
 
 import Cookies from "universal-cookie"
 
-const COOKIE_ENV =
-  window.location.hostname === "localhost"
+function getEnv(): string {
+  const splitedHostNames = window.location.hostname.split(".")
+  return splitedHostNames.includes("localhost")
     ? "local"
-    : window.location.hostname.includes("dev") ||
-      window.location.hostname.includes("revised")
+    : splitedHostNames.includes("dev") ||
+      splitedHostNames.includes("revised") ||
+      splitedHostNames.includes("ver")
     ? "dev"
     : "prd"
+}
 
 function getCookieName(tokenName: string): string {
   if (window.location.hostname === "localhost") {
-    return `${tokenName}_localhost_${COOKIE_ENV}`
+    return `${tokenName}_localhost_local`
   } else {
+    // hostname example: "codap.2v8p.aidt.me"
     const tenant = window.location.hostname.split(".")[1]
-    return `${tokenName}_${tenant}_${COOKIE_ENV}`
+    return `${tokenName}_${tenant}_${getEnv()}`
   }
 }
 
