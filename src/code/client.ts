@@ -44,6 +44,7 @@ import {
   registerReloadPostMessage,
   registerSavePostMessage,
 } from "./post-message-manager"
+import { createBlobAndUrlFromFile } from "./api/directUploads"
 import getHashParam from './utils/get-hash-param'
 
 let CLOUDFILEMANAGER_EVENT_ID = 0
@@ -1192,6 +1193,15 @@ class CloudFileManagerClient {
         return this.saveSecondaryFile(stringContent, metadata, callback)
       })
     }
+  }
+
+  // AIDEV-NOTE:
+  // 큰 바이너리(이미지 등)를 CODAP 문서에 inline base64로 임베드하지 않고 외부 서버에 업로드한 뒤
+  // URL만 문서에 저장하기 위한 공개 API. CODAP가 `DG.cfmClient.uploadBinary(file)` 형태로 호출한다.
+  // 내부적으로 기존 ActiveStorage DirectUpload 경로를 그대로 사용한다.
+  async uploadBinary(file: File): Promise<string> {
+    const { url } = await createBlobAndUrlFromFile(file)
+    return url
   }
 
   // Saves a file to backend, but does not update current metadata.
